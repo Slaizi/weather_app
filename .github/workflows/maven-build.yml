@@ -12,19 +12,50 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17.2-alpine
+        ports:
+          - 5435:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
     steps:
+      # 1. Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: 'zulu'
 
+      # 3. Wait for PostgreSQL to be ready
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5435 -U $POSTGRES_USERNAME && break || sleep 3
+          done
+
+      # 4. Run Checkstyle to enforce code style
+      - name: Check code style with Checkstyle
+        run: mvn checkstyle:check
+
+      # 5. Run tests and build the project
       - name: Build and Test
         run: mvn clean install
 
+      # 6. Upload JAR artifact
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
