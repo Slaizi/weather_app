@@ -9,4 +9,5 @@
     <suppress checks="HideUtilityClassConstructor"/>
     <suppress checks="MagicNumber"/>
     <suppress checks="HiddenField"/>
+    <suppress checks="AvoidStarImportCheck"/>
 </suppressions>

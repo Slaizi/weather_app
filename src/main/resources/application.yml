@@ -1,15 +1,34 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: weatherApp
   config:
     import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DATABASE}
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/${POSTGRES_DATABASE}
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
-    database: postgresql
+    open-in-view: false
     show-sql: false
     hibernate:
       ddl-auto: none
+  liquibase:
+    change-log: db/changelog/db.changelog-master.yml
+    enabled: true
+
+token:
+  jwt:
+    secret: ${JWT_SECRET}
+    access_duration: ${JWT_ACCESS_DURATION}
+    refresh_duration: ${JWT_REFRESH_DURATION}
+
+open_weather:
+  url:
+    basic_path: https://api.openweathermap.org
+    weather_suffix: /data/2.5/weather
+    geocoding_suffix: /geo/1.0/direct
+  apikey: ${SECRET_API_KEY}
