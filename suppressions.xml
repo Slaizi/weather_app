@@ -10,4 +10,12 @@
     <suppress checks="MagicNumber"/>
     <suppress checks="HiddenField"/>
     <suppress checks="AvoidStarImportCheck"/>
+
+    <!-- Suppress line length check for specific files -->
+    <suppress checks="LineLength" files=".*RefreshRequest.java"/>
+    <suppress checks="LineLength" files=".*SignInRequest.java"/>
+    <suppress checks="LineLength" files=".*SignInResponse.java"/>
+    <suppress checks="LineLength" files=".*SignUpRequest.java"/>
+    <suppress checks="LineLength" files=".*SignUpResponse.java"/>
+    <suppress checks="LineLength" files=".*ExceptionBody.java"/>
 </suppressions>

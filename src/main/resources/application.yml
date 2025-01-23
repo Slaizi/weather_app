@@ -22,9 +22,9 @@ spring:
 
 token:
   jwt:
-    secret: ${JWT_SECRET}
-    access_duration: ${JWT_ACCESS_DURATION}
-    refresh_duration: ${JWT_REFRESH_DURATION}
+    secret:
+      access: ${JWT_ACCESS_SECRET}
+      refresh: ${JWT_REFRESH_SECRET}
 
 open_weather:
   url:
