@@ -19,12 +19,26 @@ spring:
   liquibase:
     change-log: db/changelog/db.changelog-master.yml
     enabled: true
+  cache:
+    type: redis
+    cache-names: redis-cache
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
 
 token:
   jwt:
     secret:
-      access: ${JWT_ACCESS_SECRET}
-      refresh: ${JWT_REFRESH_SECRET}
+      access:
+        value: ${JWT_ACCESS_SECRET}
+        duration: ${JWT_ACCESS_DURATION}
+      refresh:
+        value: ${JWT_REFRESH_SECRET}
+        duration: ${JWT_REFRESH_DURATION}
+        storage:
+          tmp: ${JWT_REFRESH_STORAGE_TMP}
 
 open_weather:
   url:
