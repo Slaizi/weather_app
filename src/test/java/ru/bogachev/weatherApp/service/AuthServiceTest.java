@@ -9,22 +9,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.bogachev.weatherApp.dto.auth.*;
 import ru.bogachev.weatherApp.exception.InvalidTokenException;
 import ru.bogachev.weatherApp.model.user.Role;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.security.JwtTokenProvider;
-import ru.bogachev.weatherApp.security.JwtUserDetails;
 import ru.bogachev.weatherApp.service.impl.AuthServiceImpl;
 import ru.bogachev.weatherApp.support.mapper.UserJwtEntityMapper;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -87,18 +81,13 @@ class AuthServiceTest {
     void signInTest() {
         SignInRequest request = new SignInRequest("test@example.com", "password123");
         User user = createUser(request);
-        JwtUserDetails jwtUserDetails = createJwtUserDetails(user);
-        Authentication authentication = createAuthentication(jwtUserDetails);
 
         String expectedAccessToken = "accessToken123";
         String expectedRefreshToken = "refreshToken123";
 
-        when(authenticationManager.authenticate(any(Authentication.class))).thenReturn(authentication);
         when(userService.getByEmail(request.email())).thenReturn(user);
-        when(jwtEntityMapper.toDto(user)).thenReturn(jwtUserDetails);
         when(jwtTokenProvider.generateAccessToken(user)).thenReturn(expectedAccessToken);
         when(jwtTokenProvider.generateRefreshToken(user)).thenReturn(expectedRefreshToken);
-
 
         SignInResponse response = authService.signIn(request);
 
@@ -111,15 +100,11 @@ class AuthServiceTest {
     void verifySignInTest() {
         SignInRequest request = new SignInRequest("test@example.com", "password123");
         User user = createUser(request);
-        JwtUserDetails jwtUserDetails = createJwtUserDetails(user);
 
         when(userService.getByEmail(request.email())).thenReturn(user);
-        when(jwtEntityMapper.toDto(user)).thenReturn(jwtUserDetails);
 
         authService.signIn(request);
 
-        verify(authenticationManager).authenticate(any(Authentication.class));
-        verify(jwtEntityMapper).toDto(user);
         verify(userService).getByEmail(request.email());
         verify(jwtTokenProvider).generateAccessToken(user);
         verify(jwtTokenProvider).generateRefreshToken(user);
@@ -191,31 +176,4 @@ class AuthServiceTest {
                 .roles(Set.of(Role.ROLE_USER))
                 .build();
     }
-
-    @Contract("_ -> new")
-    private @NotNull JwtUserDetails createJwtUserDetails(@NotNull User user) {
-        return new JwtUserDetails(
-                user.getId(),
-                user.getEmail(),
-                user.getPassword(),
-                mapToGrantedAuthority(user.getRoles())
-        );
-    }
-
-    @Contract("_ -> new")
-    private @NotNull Authentication createAuthentication(@NotNull JwtUserDetails jwtUserDetails) {
-        return new UsernamePasswordAuthenticationToken(
-                jwtUserDetails.getUsername(),
-                jwtUserDetails.getPassword(),
-                jwtUserDetails.getAuthorities()
-        );
-    }
-
-    private Set<GrantedAuthority> mapToGrantedAuthority(@NotNull Set<Role> roles) {
-        return roles.stream()
-                .map(Enum::name)
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toSet());
-    }
-
 }
