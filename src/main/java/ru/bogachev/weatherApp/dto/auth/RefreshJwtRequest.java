@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Запрос на обновление токенов")
-public record RefreshRequest(
+public record RefreshJwtRequest(
 
         @Schema(description = "Токен обновления")
         @NotNull(message = "Токен обновления не может быть пустым")
