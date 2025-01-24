@@ -7,6 +7,8 @@ networks:
 volumes:
   postgres-data:
     driver: local
+  redis-cache:
+    driver: local
 
 services:
   db:
@@ -28,3 +30,23 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  cache:
+    image: redis:7.4-alpine
+    container_name: redis_weather_app
+    hostname: redis
+    networks:
+      - app-networks
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - ${REDIS_PORT_MAPPING}
+    volumes:
+      - redis-cache:/var/lib/redis
+    command: redis-server --save 20 1 --loglevel warning --requirepass $REDIS_PASSWORD
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
