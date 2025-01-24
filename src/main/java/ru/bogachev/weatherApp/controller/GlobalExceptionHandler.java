@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.bogachev.weatherApp.dto.exception.ExceptionBody;
 import ru.bogachev.weatherApp.exception.InvalidTokenException;
+import ru.bogachev.weatherApp.exception.UnauthorizedException;
 import ru.bogachev.weatherApp.exception.UserNotFoundException;
 
 import java.util.List;
@@ -21,6 +22,16 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ExceptionBody> handleUnauthorized(
+            final UnauthorizedException e
+    ) {
+        ExceptionBody response = new ExceptionBody(
+                e.getMessage(), Map.of());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(response);
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ExceptionBody> handleIllegalArgument(
@@ -51,7 +62,10 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = fieldError.stream()
                 .collect(Collectors.toMap(
                         FieldError::getField,
-                        Objects.requireNonNull(FieldError::getDefaultMessage)
+                        Objects.requireNonNull(FieldError::getDefaultMessage),
+                        (existing, replacement) -> String.join(
+                                ". ",
+                                existing, replacement)
                 ));
         ExceptionBody response = new ExceptionBody(
                 "Некорректные данные", errors);
@@ -85,5 +99,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(response);
     }
-
 }
