@@ -53,23 +53,53 @@ public class AuthController {
             responseCode = "200",
             description = "Пользователь успешно авторизирован",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = SignInResponse.class))
+                    schema = @Schema(implementation = JwtResponse.class))
     )
     @ApiResponse(
             responseCode = "400",
-            description = "Пользователь не был найден или "
-                          + "неверный пароль. Например, если"
-                          + "пользователь не был зарегистрирован"
-                          + "или введённый неверный пароль.",
+            description = "Неправильный ввод учетных данных"
+                          + "Например, если адрес электронной почты"
+                          + "пользователя не соответствует стандарту."
+                          + "Введённый пароль пустой или длина меньше 5",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ExceptionBody.class))
+    )
+    @ApiResponse(
+            responseCode = "401",
+            description = "Неавторизованный доступ: неверные учетные данные.",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ExceptionBody.class))
     )
     @PostMapping(value = "/sign-in",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<SignInResponse> signIn(
+    public ResponseEntity<JwtResponse> signIn(
             @RequestBody
             @Validated final SignInRequest request) {
-        SignInResponse response = authService.signIn(request);
+        JwtResponse response = authService.signIn(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Обновление токена доступа")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Токен доступа успешно обновлен",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = JwtResponse.class))
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "Токен обновления невалиден или пустой. "
+                          + "Например, если токен истек по времени или"
+                          + "был отправлен поврежденный или неверный токен.",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ResponseBody.class))
+    )
+    @PostMapping(value = "/token",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<JwtResponse> refreshAccessToken(
+            @RequestBody
+            @Validated final RefreshJwtRequest request) {
+        JwtResponse response = authService.getAccessToken(request);
         return ResponseEntity.ok(response);
     }
 
@@ -78,22 +108,22 @@ public class AuthController {
             responseCode = "200",
             description = "Токены успешно обновлены",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = SignInResponse.class))
+                    schema = @Schema(implementation = JwtResponse.class))
     )
     @ApiResponse(
             responseCode = "400",
-            description = "Токен обновления невалиден. "
-                          + "Например, если токен истек по времени или"
+            description = "Токен обновления невалиден или пустой. "
+                          + "Например, если токен истек по времени или "
                           + "был отправлен поврежденный или неверный токен.",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ResponseBody.class))
     )
     @PostMapping(value = "/refresh",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<SignInResponse> refreshTokens(
+    public ResponseEntity<JwtResponse> refreshTokens(
             @RequestBody
-            @Validated final RefreshRequest request) {
-        SignInResponse response = authService.refreshTokens(request);
+            @Validated final RefreshJwtRequest request) {
+        JwtResponse response = authService.refresh(request);
         return ResponseEntity.ok(response);
     }
 

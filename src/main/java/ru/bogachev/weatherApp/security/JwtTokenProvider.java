@@ -24,29 +24,35 @@ import java.util.Set;
 @Component
 public class JwtTokenProvider {
 
-    private static final Long ACCESS_DURATION = 1L;
-    private static final Long REFRESH_DURATION = 30L;
-
     private final SecretKey jwtAccessSecret;
     private final SecretKey jwtRefreshSecret;
 
+    private final Long accessDuration;
+    private final Long refreshDuration;
+
 
     public JwtTokenProvider(
-            @Value("${token.jwt.secret.access}")
+            @Value("${token.jwt.secret.access.value}")
             @NonNull final String jwtAccessSecret,
-            @Value("${token.jwt.secret.refresh}")
-            @NonNull final String jwtRefreshSecret
+            @Value("${token.jwt.secret.refresh.value}")
+            @NonNull final String jwtRefreshSecret,
+            @Value("${token.jwt.secret.access.duration}")
+            @NonNull final Long accessDuration,
+            @Value("${token.jwt.secret.refresh.duration}")
+            @NonNull final Long refreshDuration
     ) {
         this.jwtAccessSecret = Keys.hmacShaKeyFor(
                 jwtAccessSecret.getBytes());
         this.jwtRefreshSecret = Keys.hmacShaKeyFor(
                 jwtRefreshSecret.getBytes()
         );
+        this.accessDuration = accessDuration;
+        this.refreshDuration = refreshDuration;
     }
 
     public String generateAccessToken(@NonNull final User user) {
         Instant accessExpirationInstant = Instant.now()
-                .plus(ACCESS_DURATION, ChronoUnit.HOURS)
+                .plus(accessDuration, ChronoUnit.HOURS)
                 .atZone(ZoneId.systemDefault()).toInstant();
         Date accessExpiration = Date.from(accessExpirationInstant);
         return Jwts.builder()
@@ -60,7 +66,7 @@ public class JwtTokenProvider {
 
     public String generateRefreshToken(@NonNull final User user) {
         Instant refreshExpirationInstant = Instant.now()
-                .plus(REFRESH_DURATION, ChronoUnit.DAYS)
+                .plus(refreshDuration, ChronoUnit.DAYS)
                 .atZone(ZoneId.systemDefault()).toInstant();
         Date refreshExpiration = Date.from(refreshExpirationInstant);
         return Jwts.builder()

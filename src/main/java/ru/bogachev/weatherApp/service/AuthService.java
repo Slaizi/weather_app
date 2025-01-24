@@ -6,8 +6,10 @@ public interface AuthService {
 
     SignUpResponse singUp(SignUpRequest request);
 
-    SignInResponse signIn(SignInRequest request);
+    JwtResponse signIn(SignInRequest request);
 
-    SignInResponse refreshTokens(RefreshRequest request);
+    JwtResponse getAccessToken(RefreshJwtRequest request);
+
+    JwtResponse refresh(RefreshJwtRequest request);
 
 }
