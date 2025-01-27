@@ -5,8 +5,11 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.proxy.HibernateProxy;
+import ru.bogachev.weatherApp.model.location.Location;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -17,7 +20,7 @@ import java.util.Set;
 @Builder
 @Entity(name = "user_app")
 @Table(name = "users")
-public class User {
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,6 +48,20 @@ public class User {
             updatable = false,
             columnDefinition = "TIMESTAMP")
     private LocalDateTime registerDate;
+
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.DETACH,
+                    CascadeType.MERGE,
+                    CascadeType.PERSIST,
+                    CascadeType.REFRESH
+            })
+    @JoinTable(
+            name = "users_locations",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "location_id")
+    )
+    private List<Location> locations;
 
     @Override
     public final boolean equals(final Object o) {

@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/changesets/V1__create_users_users_roles_tables.sql
+  - include:
+      file: db/changelog/changesets/V2__create_locations_users_locations_tables.sql
