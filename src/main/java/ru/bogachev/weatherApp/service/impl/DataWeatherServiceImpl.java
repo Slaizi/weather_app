@@ -11,7 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import ru.bogachev.weatherApp.configuration.props.WeatherProperties;
 import ru.bogachev.weatherApp.dto.location.LocationGeoDto;
+import ru.bogachev.weatherApp.dto.location.LocationWeatherDto;
 import ru.bogachev.weatherApp.exception.GeoRequestException;
+import ru.bogachev.weatherApp.exception.WeatherRequestException;
+import ru.bogachev.weatherApp.model.location.Location;
 import ru.bogachev.weatherApp.service.DataWeatherService;
 
 import java.io.IOException;
@@ -78,6 +81,59 @@ public class DataWeatherServiceImpl implements DataWeatherService {
     private LocationGeoDto getFirstLocationOrDefault(
             final @NotNull List<LocationGeoDto> locations) {
         return locations.isEmpty() ? new LocationGeoDto() : locations.get(0);
+    }
+
+    @Override
+    public LocationWeatherDto getWeatherForLocation(
+            final Location location) {
+        Request request = buildWeatherRequest(location);
+        return executeWeatherRequest(request);
+    }
+
+    private @NotNull Request buildWeatherRequest(
+            final Location location) {
+        String url = buildUrlForWeatherRequest(location);
+        return buildGetRequest(url);
+    }
+
+    private @NotNull String buildUrlForWeatherRequest(
+            final @NotNull Location location) {
+
+        WeatherProperties.Url url = weatherProperties.getUrl();
+        Double lat = location.getLatitude();
+        Double lon = location.getLongitude();
+        String apiKey = weatherProperties.getApiKey();
+
+        return url.getBasicPath()
+               + url.getWeatherSuffix()
+               + "?lat=" + lat
+               + "&lon=" + lon
+               + "&lang=ru"
+               + "&units=metric"
+               + "appid" + apiKey;
+    }
+
+    private LocationWeatherDto executeWeatherRequest(
+            final Request request) {
+        try (Response response = client.newCall(request).execute()) {
+            return processWeatherResponse(response);
+        } catch (IOException e) {
+            throw new WeatherRequestException(
+                    "Error while executing weather request", e
+            );
+        }
+    }
+
+    @SneakyThrows
+    private LocationWeatherDto processWeatherResponse(
+            final @NotNull Response response) {
+        if (response.isSuccessful() && response.body() != null) {
+            return objectMapper.readValue(response.body().string()
+                    .getBytes(StandardCharsets.UTF_8),
+                    LocationWeatherDto.class
+            );
+        }
+        return new LocationWeatherDto();
     }
 
     private @NotNull Request buildGetRequest(final String url) {
