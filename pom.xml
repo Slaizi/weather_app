@@ -24,6 +24,7 @@
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <jetbrains-annotations.version>17.0.0</jetbrains-annotations.version>
+        <okhttp.version>4.12.0</okhttp.version>
     </properties>
 
     <dependencies>
@@ -103,6 +104,12 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
         </dependency>
 
         <!-- Тестирование -->

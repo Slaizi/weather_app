@@ -1,10 +1,12 @@
 package ru.bogachev.weatherApp.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,6 +16,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableMethodSecurity
 @EnableWebSecurity
 public class ApplicationConfiguration {
+
+    @Bean
+    public OkHttpClient httpClient() {
+        return new OkHttpClient();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 
     @Bean
     public OpenAPI openAPI() {

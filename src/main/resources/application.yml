@@ -45,4 +45,4 @@ open_weather:
     basic_path: https://api.openweathermap.org
     weather_suffix: /data/2.5/weather
     geocoding_suffix: /geo/1.0/direct
-  apikey: ${SECRET_API_KEY}
+  api_key: ${SECRET_API_KEY}
