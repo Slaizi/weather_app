@@ -8,22 +8,21 @@ import org.springframework.context.annotation.Configuration;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @Configuration
-@ConfigurationProperties(prefix = "open_weather")
+@ConfigurationProperties(prefix = "open-weather")
 public class WeatherProperties {
 
-    private final Url url;
-    private final String apiKey;
+    private Url url;
+    private String apiKey;
 
     @Getter
     @Setter
     @AllArgsConstructor
     public static class Url {
 
-        private final String basicPath;
-        private final String weatherSuffix;
-        private final String geocodingSuffix;
+        private String basicPath;
+        private String weatherSuffix;
+        private String geocodingSuffix;
 
     }
 }

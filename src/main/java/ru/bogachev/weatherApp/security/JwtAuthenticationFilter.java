@@ -1,33 +1,31 @@
 package ru.bogachev.weatherApp.security;
 
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
+import ru.bogachev.weatherApp.exception.InvalidTokenException;
 
-@Component
-@RequiredArgsConstructor
+import java.nio.charset.StandardCharsets;
+
+@AllArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String HEADER_NAME = "Authorization";
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
 
     @Override
     @SneakyThrows
@@ -35,30 +33,27 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                          final ServletResponse resp,
                          final FilterChain fc) {
         String token = getTokenFromRequest(req);
-        if (Strings.isNotBlank(token)
-            && jwtTokenProvider.validateAccessToken(token)) {
-            Claims claims = jwtTokenProvider.getAccessClaims(token);
-            String username = claims.getSubject();
-            try {
-                authenticateUser(username);
-            } catch (UsernameNotFoundException ignored) {
-            }
-        }
-        fc.doFilter(req, resp);
-    }
 
-    @SneakyThrows
-    private void authenticateUser(final String username) {
-        UserDetails userDetails = userDetailsService
-                .loadUserByUsername(username);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails.getUsername(),
-                userDetails.getPassword(),
-                userDetails.getAuthorities()
-        );
-        SecurityContextHolder
-                .getContext()
-                .setAuthentication(authentication);
+        try {
+            if (Strings.isNotBlank(token)
+                && jwtTokenProvider.validateAccessToken(token)) {
+                Authentication authentication = jwtTokenProvider
+                        .getAuthentication(token);
+                if (authentication != null) {
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(authentication);
+                }
+            }
+            fc.doFilter(req, resp);
+        } catch (UsernameNotFoundException | InvalidTokenException e) {
+            HttpServletResponse response = (HttpServletResponse) resp;
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.getWriter()
+                    .write("{\"message\": \"" + e.getMessage() + "\"}");
+        }
     }
 
     private String getTokenFromRequest(

@@ -3,10 +3,7 @@ package ru.bogachev.weatherApp.configuration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,16 +15,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ru.bogachev.weatherApp.security.JwtAuthenticationFilter;
-import ru.bogachev.weatherApp.security.JwtUserDetailsService;
+import ru.bogachev.weatherApp.security.JwtTokenProvider;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor(onConstructor_ = @__(@Lazy))
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtUserDetailsService jwtUserDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -48,8 +44,8 @@ public class SecurityConfiguration {
                         .anyRequest()
                         .authenticated())
                 .anonymous(AbstractHttpConfigurer::disable)
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter,
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -58,15 +54,6 @@ public class SecurityConfiguration {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider =
-                new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(jwtUserDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
     }
 
     @Bean
