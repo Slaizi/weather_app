@@ -1,6 +1,7 @@
 package ru.bogachev.weatherApp.dto.location;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -35,6 +36,7 @@ public class LocationWeatherDto {
 
     @JsonProperty(value = "dt")
     @JsonDeserialize(using = UnixTimestampDeserializer.class)
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm")
     private LocalDateTime dateTime;
 
     @JsonProperty(value = "sys")

@@ -18,10 +18,10 @@ public class UnixTimestampDeserializer extends JsonDeserializer<LocalDateTime> {
             final DeserializationContext deserializationContext)
             throws IOException {
 
-        long timestampInSeconds = jsonParser.getValueAsLong();
+        long timestampInSeconds = jsonParser.getLongValue();
 
-        return LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(timestampInSeconds),
+        return LocalDateTime.ofInstant(Instant
+                        .ofEpochSecond(timestampInSeconds),
                 ZoneId.systemDefault()
         );
     }

@@ -1,6 +1,7 @@
 package ru.bogachev.weatherApp.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -24,7 +25,9 @@ public class ApplicationConfiguration {
 
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 
     @Bean
