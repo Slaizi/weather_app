@@ -17,9 +17,9 @@ import ru.bogachev.weatherApp.model.user.Role;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.security.JwtTokenProvider;
 import ru.bogachev.weatherApp.security.JwtUserDetails;
-import ru.bogachev.weatherApp.service.AuthService;
-import ru.bogachev.weatherApp.service.TokenStorageService;
-import ru.bogachev.weatherApp.service.UserService;
+import ru.bogachev.weatherApp.service.AuthenticationService;
+import ru.bogachev.weatherApp.service.TokenStorageManagementService;
+import ru.bogachev.weatherApp.service.UserManagementService;
 import ru.bogachev.weatherApp.support.mapper.UserJwtEntityMapper;
 
 import java.time.LocalDateTime;
@@ -27,13 +27,13 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService {
+public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
-    private final UserService userService;
+    private final UserManagementService userManagementService;
     private final AuthenticationManager authManager;
-    private final TokenStorageService tokenStorageService;
+    private final TokenStorageManagementService tokenStorageManagementService;
     private final UserJwtEntityMapper userJwtEntityMapper;
 
     @Override
@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
                 .registerDate(LocalDateTime.now())
                 .build();
 
-        userService.create(user);
+        userManagementService.create(user);
         return new SignUpResponse("SUCCESS",
                 "Пользователь успешно зарегистрирован");
     }
@@ -67,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
             final String refreshToken = jwtTokenProvider
                     .generateRefreshToken(user);
 
-            tokenStorageService.save(user.getId(), refreshToken);
+            tokenStorageManagementService.save(user.getId(), refreshToken);
             return new JwtResponse(accessToken, refreshToken);
         } catch (BadCredentialsException e) {
             throw new UnauthorizedException("Неверный email или пароль");
@@ -81,7 +81,9 @@ public class AuthServiceImpl implements AuthService {
 
         if (jwtTokenProvider.validateRefreshToken(refreshToken)) {
             User user = getUserFromRefreshToken(refreshToken);
-            String currentToken = tokenStorageService.get(user.getId());
+            String currentToken = tokenStorageManagementService
+                    .get(user.getId());
+
             if (Strings.isNotBlank(currentToken)
                 && currentToken.equals(refreshToken)) {
                 final String newAccessToken = jwtTokenProvider
@@ -98,7 +100,9 @@ public class AuthServiceImpl implements AuthService {
 
         if (jwtTokenProvider.validateRefreshToken(refreshToken)) {
             User user = getUserFromRefreshToken(refreshToken);
-            String currentToken = tokenStorageService.get(user.getId());
+            String currentToken = tokenStorageManagementService
+                    .get(user.getId());
+
             if (Strings.isNotBlank(currentToken)
                 && currentToken.equals(refreshToken)) {
                 final String newAccessToken = jwtTokenProvider
@@ -106,7 +110,8 @@ public class AuthServiceImpl implements AuthService {
                 final String newRefreshToken = jwtTokenProvider
                         .generateRefreshToken(user);
 
-                tokenStorageService.save(user.getId(), newRefreshToken);
+                tokenStorageManagementService
+                        .save(user.getId(), newRefreshToken);
                 return new JwtResponse(newAccessToken, newRefreshToken);
             }
         }
@@ -116,6 +121,6 @@ public class AuthServiceImpl implements AuthService {
     private User getUserFromRefreshToken(final String refreshToken) {
         Claims refreshClaims = jwtTokenProvider.getRefreshClaims(refreshToken);
         String email = refreshClaims.getSubject();
-        return userService.getByEmail(email);
+        return userManagementService.getByEmail(email);
     }
 }

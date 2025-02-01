@@ -1,6 +1,6 @@
 package ru.bogachev.weatherApp.service;
 
-public interface TokenStorageService {
+public interface TokenStorageManagementService {
 
     void save(Long userId, String token);
 

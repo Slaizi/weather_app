@@ -14,7 +14,7 @@ import ru.bogachev.weatherApp.configuration.props.WeatherProperties;
 import ru.bogachev.weatherApp.dto.location.LocationGeoDto;
 import ru.bogachev.weatherApp.dto.location.LocationWeatherDto;
 import ru.bogachev.weatherApp.model.location.Location;
-import ru.bogachev.weatherApp.service.impl.DataWeatherServiceImpl;
+import ru.bogachev.weatherApp.service.impl.WeatherDataServiceImpl;
 
 import java.io.IOException;
 
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DataWeatherServiceTest {
+class WeatherDataServiceTest {
 
     @Mock
     private OkHttpClient client;
@@ -37,7 +37,7 @@ class DataWeatherServiceTest {
     private WeatherProperties weatherProperties;
 
     @InjectMocks
-    private DataWeatherServiceImpl weatherService;
+    private WeatherDataServiceImpl weatherService;
 
     @BeforeEach
     void setUp() {

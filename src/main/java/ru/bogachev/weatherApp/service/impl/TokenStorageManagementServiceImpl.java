@@ -5,19 +5,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import ru.bogachev.weatherApp.service.TokenStorageService;
+import ru.bogachev.weatherApp.service.TokenStorageManagementService;
 
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class TokenStorageServiceImpl implements TokenStorageService {
+public class TokenStorageManagementServiceImpl
+        implements TokenStorageManagementService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final String keyTokenStorageTmp;
     private final Long refreshDuration;
 
 
-    public TokenStorageServiceImpl(
+    public TokenStorageManagementServiceImpl(
             @Autowired final RedisTemplate<String, Object> redisTemplate,
             @Value("${token.jwt.secret.refresh.storage.tmp}")
             @NonNull final String keyTokenStorageTmp,

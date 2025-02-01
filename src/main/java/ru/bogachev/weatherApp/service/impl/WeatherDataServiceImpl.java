@@ -15,7 +15,7 @@ import ru.bogachev.weatherApp.dto.location.LocationWeatherDto;
 import ru.bogachev.weatherApp.exception.GeoRequestException;
 import ru.bogachev.weatherApp.exception.WeatherRequestException;
 import ru.bogachev.weatherApp.model.location.Location;
-import ru.bogachev.weatherApp.service.DataWeatherService;
+import ru.bogachev.weatherApp.service.WeatherDataService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +23,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class DataWeatherServiceImpl implements DataWeatherService {
+public class WeatherDataServiceImpl implements WeatherDataService {
 
     private final OkHttpClient client;
     private final ObjectMapper objectMapper;
@@ -110,7 +110,7 @@ public class DataWeatherServiceImpl implements DataWeatherService {
                + "&lon=" + lon
                + "&lang=ru"
                + "&units=metric"
-               + "appid" + apiKey;
+               + "&appid=" + apiKey;
     }
 
     private LocationWeatherDto executeWeatherRequest(

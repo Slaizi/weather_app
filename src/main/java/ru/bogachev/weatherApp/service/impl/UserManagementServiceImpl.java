@@ -7,13 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.bogachev.weatherApp.exception.UserNotFoundException;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.repository.UserRepository;
-import ru.bogachev.weatherApp.service.UserService;
+import ru.bogachev.weatherApp.service.UserManagementService;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserManagementServiceImpl implements UserManagementService {
 
     private final UserRepository userRepository;
 

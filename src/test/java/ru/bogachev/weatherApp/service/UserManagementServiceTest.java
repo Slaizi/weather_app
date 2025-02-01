@@ -10,7 +10,7 @@ import ru.bogachev.weatherApp.exception.UserNotFoundException;
 import ru.bogachev.weatherApp.model.user.Role;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.repository.UserRepository;
-import ru.bogachev.weatherApp.service.impl.UserServiceImpl;
+import ru.bogachev.weatherApp.service.impl.UserManagementServiceImpl;
 
 import java.util.Optional;
 import java.util.Set;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserManagementServiceTest {
 
     private static final String DEFAULT_EMAIL = "user@example.com";
     private static final String ENCODED_PASSWORD = "encodedPassword";
@@ -28,7 +28,7 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private UserManagementServiceImpl userService;
 
     @Test
     void shouldSaveUserWhenEmailDoesNotExist() {

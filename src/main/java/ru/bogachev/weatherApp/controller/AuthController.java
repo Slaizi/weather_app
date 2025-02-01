@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.bogachev.weatherApp.dto.auth.*;
 import ru.bogachev.weatherApp.dto.exception.ExceptionBody;
-import ru.bogachev.weatherApp.service.AuthService;
+import ru.bogachev.weatherApp.service.AuthenticationService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -22,7 +22,7 @@ import ru.bogachev.weatherApp.service.AuthService;
 @Tag(name = "Аутентификация", description = "Auth API")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthenticationService authenticationService;
 
     @Operation(summary = "Регистрация пользователя")
     @ApiResponse(
@@ -44,7 +44,7 @@ public class AuthController {
     public ResponseEntity<SignUpResponse> signUp(
             @RequestBody
             @Validated final SignUpRequest request) {
-        SignUpResponse response = authService.singUp(request);
+        SignUpResponse response = authenticationService.singUp(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -57,10 +57,10 @@ public class AuthController {
     )
     @ApiResponse(
             responseCode = "400",
-            description = "Неправильный ввод учетных данных"
-                          + "Например, если адрес электронной почты"
-                          + "пользователя не соответствует стандарту."
-                          + "Введённый пароль пустой или длина меньше 5",
+            description = "Неправильный ввод учетных данных. "
+                          + "Например, если адрес электронной почты "
+                          + "пользователя не соответствует стандарту. "
+                          + "Введённый пароль пустой или длина меньше 5.",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ExceptionBody.class))
     )
@@ -75,7 +75,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> signIn(
             @RequestBody
             @Validated final SignInRequest request) {
-        JwtResponse response = authService.signIn(request);
+        JwtResponse response = authenticationService.signIn(request);
         return ResponseEntity.ok(response);
     }
 
@@ -99,7 +99,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> refreshAccessToken(
             @RequestBody
             @Validated final RefreshJwtRequest request) {
-        JwtResponse response = authService.getAccessToken(request);
+        JwtResponse response = authenticationService.getAccessToken(request);
         return ResponseEntity.ok(response);
     }
 
@@ -123,7 +123,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> refreshTokens(
             @RequestBody
             @Validated final RefreshJwtRequest request) {
-        JwtResponse response = authService.refresh(request);
+        JwtResponse response = authenticationService.refresh(request);
         return ResponseEntity.ok(response);
     }
 

@@ -2,7 +2,7 @@ package ru.bogachev.weatherApp.service;
 
 import ru.bogachev.weatherApp.dto.auth.*;
 
-public interface AuthService {
+public interface AuthenticationService {
 
     SignUpResponse singUp(SignUpRequest request);
 
