@@ -18,4 +18,7 @@ public class Wind {
     @JsonProperty(value = "deg")
     private Integer deg;
 
+    @JsonProperty("gust")
+    private Double gust;
+
 }
