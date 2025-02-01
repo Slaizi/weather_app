@@ -1,11 +1,10 @@
 package ru.bogachev.weatherApp.model.location;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.type.SqlTypes;
 import ru.bogachev.weatherApp.model.user.User;
 
 import java.io.Serializable;
@@ -36,6 +35,7 @@ public class Location implements Serializable {
     @Column(name = "longitude", nullable = false)
     private Double longitude;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "local_names", columnDefinition = "jsonb")
     private LocationNames localNames;
 

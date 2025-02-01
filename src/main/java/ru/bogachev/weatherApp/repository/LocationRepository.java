@@ -6,16 +6,18 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.bogachev.weatherApp.model.location.Location;
 
+import java.util.Optional;
+
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long> {
 
     @Query(value = """
-            SELECT EXISTS (
-                SELECT 1 FROM locations
-                CROSS JOIN LATERAL jsonb_each_text(locations.local_names) AS kv
-                WHERE kv.value = :value
+            SELECT * FROM locations WHERE EXISTS(
+                 SELECT 1 FROM jsonb_each_text(
+                     jsonb_extract_path(local_names, 'local_names')
+                 ) WHERE value = :value
             )
             """, nativeQuery = true)
-    boolean existsLocationByLocalName(@Param("value") String localName);
-
+    Optional<Location> findLocationByJsonbValue(
+            @Param("value") String localName);
 }
