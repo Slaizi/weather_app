@@ -5,15 +5,12 @@ import jakarta.validation.ConstraintViolationException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.bogachev.weatherApp.dto.exception.ExceptionBody;
-import ru.bogachev.weatherApp.exception.InvalidTokenException;
-import ru.bogachev.weatherApp.exception.UnauthorizedException;
-import ru.bogachev.weatherApp.exception.UserNotFoundException;
+import ru.bogachev.weatherApp.exception.*;
 
 import java.util.List;
 import java.util.Map;
@@ -23,9 +20,30 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ExceptionBody> handleUserNotFound(
+            final UserNotFoundException e
+    ) {
+        return returnDefaultResponseBadRequest(e);
+    }
+
+    @ExceptionHandler(GeoRequestException.class)
+    public ResponseEntity<ExceptionBody> handleGeoRequest(
+            final GeoRequestException e
+    ) {
+        return returnDefaultResponseBadRequest(e);
+    }
+
+    @ExceptionHandler(WeatherRequestException.class)
+    public ResponseEntity<ExceptionBody> handleWeatherRequest(
+            final WeatherRequestException e
+    ) {
+        return returnDefaultResponseBadRequest(e);
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ExceptionBody> handleUnauthorized(
-            final UnauthorizedException e
+            final @NotNull UnauthorizedException e
     ) {
         ExceptionBody response = new ExceptionBody(
                 e.getMessage(), Map.of());
@@ -40,18 +58,15 @@ public class GlobalExceptionHandler {
         return returnDefaultResponseBadRequest(e);
     }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ExceptionBody> handleUsernameNotFound(
-            final UserNotFoundException e
-    ) {
-        return returnDefaultResponseBadRequest(e);
-    }
-
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ExceptionBody> handleInvalidToken(
-            final InvalidTokenException e
+            final @NotNull InvalidTokenException e
     ) {
-        return returnDefaultResponseBadRequest(e);
+        ExceptionBody response = new ExceptionBody(
+                e.getMessage(), Map.of()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
