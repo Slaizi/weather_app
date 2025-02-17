@@ -12,12 +12,17 @@ import java.util.Optional;
 public interface LocationRepository extends JpaRepository<Location, Long> {
 
     @Query(value = """
-            SELECT * FROM locations WHERE EXISTS(
-                 SELECT 1 FROM jsonb_each_text(
-                     jsonb_extract_path(local_names, 'local_names')
-                 ) WHERE value = :value
+            SELECT *
+            FROM locations
+            WHERE country ILIKE :iso_code
+              AND EXISTS (
+                SELECT 1
+                FROM jsonb_each_text(local_names -> 'local_names')
+                WHERE value = :value
             )
+            LIMIT 1
             """, nativeQuery = true)
     Optional<Location> findLocationByJsonbValue(
+            @Param("iso_code") String isoCode,
             @Param("value") String localName);
 }
