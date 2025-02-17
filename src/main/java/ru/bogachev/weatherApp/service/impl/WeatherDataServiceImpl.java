@@ -30,20 +30,25 @@ public class WeatherDataServiceImpl implements WeatherDataService {
     private final WeatherProperties weatherProperties;
 
     @Override
-    public LocationGeoDto getLocationGeoByName(final String nameOfLocation) {
-        Request request = buildGeocodingRequest(nameOfLocation);
+    public LocationGeoDto getLocationGeoByName(
+            final String countyIsoCode,
+            final String nameOfLocation) {
+        Request request = buildGeocodingRequest(countyIsoCode, nameOfLocation);
         List<LocationGeoDto> locations = executeGeoRequest(request);
 
         return getFirstLocationOrDefault(locations);
     }
 
     private @NotNull Request buildGeocodingRequest(
+            final String countyIsoCode,
             final String nameOfLocation) {
-        String url = buildUrlForGeocodingRequest(nameOfLocation);
+        String url = buildUrlForGeocodingRequest(
+                countyIsoCode, nameOfLocation);
         return buildGetRequest(url);
     }
 
     private @NotNull String buildUrlForGeocodingRequest(
+            final String countyIsoCode,
             final String nameOfLocation) {
 
         WeatherProperties.Url url = weatherProperties.getUrl();
@@ -52,6 +57,7 @@ public class WeatherDataServiceImpl implements WeatherDataService {
         return url.getBasicPath()
                + url.getGeocodingSuffix()
                + "?q=" + nameOfLocation
+               + ", " + countyIsoCode
                + "&limit=1"
                + "&appid=" + apiKey;
     }
@@ -102,13 +108,14 @@ public class WeatherDataServiceImpl implements WeatherDataService {
         WeatherProperties.Url url = weatherProperties.getUrl();
         Double lat = location.getLatitude();
         Double lon = location.getLongitude();
+        String countryCode = location.getCountry();
         String apiKey = weatherProperties.getApiKey();
 
         return url.getBasicPath()
                + url.getWeatherSuffix()
                + "?lat=" + lat
                + "&lon=" + lon
-               + "&lang=ru"
+               + "&lang=" + countryCode
                + "&units=metric"
                + "&appid=" + apiKey;
     }

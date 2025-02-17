@@ -6,7 +6,8 @@ import ru.bogachev.weatherApp.model.location.Location;
 
 public interface WeatherDataService {
 
-    LocationGeoDto getLocationGeoByName(String nameOfLocation);
+    LocationGeoDto getLocationGeoByName(String countyIsoCode,
+                                        String nameOfLocation);
 
     LocationWeatherDto getWeatherForLocation(Location location);
 
