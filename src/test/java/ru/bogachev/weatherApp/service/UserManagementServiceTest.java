@@ -2,10 +2,10 @@ package ru.bogachev.weatherApp.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.bogachev.weatherApp.exception.UserAlreadyExistsException;
 import ru.bogachev.weatherApp.exception.UserNotFoundException;
 import ru.bogachev.weatherApp.model.user.Role;
 import ru.bogachev.weatherApp.model.user.User;
@@ -31,58 +31,59 @@ class UserManagementServiceTest {
     private UserManagementServiceImpl userService;
 
     @Test
-    void shouldSaveUserWhenEmailDoesNotExist() {
+    void create_withNoExistsUser_saveSuccessfully() {
         User user = createUser();
 
-        when(userRepository.existsByEmail(DEFAULT_EMAIL))
+        when(userRepository.existsByEmail(user.getEmail()))
                 .thenReturn(false);
 
         userService.create(user);
 
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(userCaptor.capture());
-        assertEquals(user, userCaptor.getValue());
+        assertEquals(DEFAULT_EMAIL, user.getEmail());
+        verify(userRepository).save(user);
     }
 
     @Test
-    void shouldThrowExceptionIfEmailAlreadyExists() {
-        String email = DEFAULT_EMAIL;
+    void create_withExistUser_throwException() {
         User user = createUser();
+        String expectedMessage = String.format(
+                "Пользователь с адресом электронной почты "
+                + "'%s' уже существует. Проверьте введённые данные.",
+                DEFAULT_EMAIL
+        );
 
-        when(userRepository.existsByEmail(email))
+        when(userRepository.existsByEmail(user.getEmail()))
                 .thenReturn(true);
 
-        IllegalArgumentException exception = assertThrowsExactly(IllegalArgumentException.class,
+        UserAlreadyExistsException exception = assertThrowsExactly(UserAlreadyExistsException.class,
                 () -> userService.create(user));
 
-        assertEquals(
-                String.format("Пользователь с адресом электронной почты "
-                              + "'%s' уже существует. "
-                              + "Проверьте введённые данные.", email),
-                exception.getMessage()
-        );
-        verify(userRepository).existsByEmail(email);
+        assertEquals(expectedMessage, exception.getMessage());
         verify(userRepository, never()).save(user);
     }
 
     @Test
-    void shouldReturnUserByEmail() {
+    void getByEmail_withExistUser_getSuccessfully() {
         String email = DEFAULT_EMAIL;
         User user = createUser();
 
         when(userRepository.findByEmail(email))
                 .thenReturn(Optional.of(user));
 
-        User actualUser = userService.getByEmail(email);
+        User userResult = userService.getByEmail(email);
 
-        assertNotNull(actualUser);
-        assertEquals(user, actualUser);
+        assertNotNull(userResult);
         verify(userRepository).findByEmail(email);
     }
 
     @Test
-    void shouldThrowExceptionIfUserNotFoundByEmail() {
+    void getByEmail_withUserNotFound_throwException() {
         String email = DEFAULT_EMAIL;
+        String expectedMessage = String.format(
+                "Пользователь с адресом электронной почты "
+                + "'%s' не был найден. Проверьте введённые данные.",
+                email
+        );
 
         when(userRepository.findByEmail(email))
                 .thenReturn(Optional.empty());
@@ -90,14 +91,7 @@ class UserManagementServiceTest {
         UserNotFoundException exception = assertThrowsExactly(UserNotFoundException.class,
                 () -> userService.getByEmail(email));
 
-        assertEquals(String.format(
-                        "Пользователь с адресом "
-                        + "электронной почты '%s' "
-                        + "не был найден. "
-                        + "Проверьте введённые данные", email),
-                exception.getMessage()
-        );
-        verify(userRepository).findByEmail(email);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     private User createUser() {

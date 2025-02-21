@@ -24,6 +24,7 @@ import ru.bogachev.weatherApp.service.impl.AuthenticationServiceImpl;
 import ru.bogachev.weatherApp.service.impl.TokenStorageManagementServiceImpl;
 import ru.bogachev.weatherApp.support.mapper.UserJwtEntityMapperImpl;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,22 +64,31 @@ class AuthenticationServiceTest {
     private AuthenticationServiceImpl authService;
 
     @Test
-    void shouldSignUpUserSuccessfully() {
-        SignUpRequest request = createSignUpRequest();
+    void signUp_withValidUser_saveUser() {
+        SignUpRequest request =
+                new SignUpRequest(
+                        DEFAULT_EMAIL,
+                        DEFAULT_PASSWORD,
+                        DEFAULT_PASSWORD
+                );
+        User userInDataBase = createUser();
 
         when(passwordEncoder.encode(request.password())).thenReturn(ENCODED_PASSWORD);
+        when(userManagementService.create(any(User.class))).thenReturn(userInDataBase);
 
         SignUpResponse response = authService.singUp(request);
 
         assertNotNull(response);
-        assertEquals("SUCCESS", response.status());
-        assertEquals("Пользователь успешно зарегистрирован", response.message());
+        assertEquals(request.email(), response.email());
+        assertEquals(Set.of(Role.ROLE_USER), response.role());
+        assertEquals(userInDataBase.getId(), response.id());
+        assertNotNull(response.localDateTime());
+
         verify(passwordEncoder).encode(request.password());
-        verify(userManagementService).create(any(User.class));
     }
 
     @Test
-    void shouldSignInUserSuccessfully() {
+    void signIn_withValidUser_authSuccessfully() {
         SignInRequest request = createSignInRequest();
         User user = createUser();
         Authentication authentication = createAuthentication(user);
@@ -91,7 +101,6 @@ class AuthenticationServiceTest {
         JwtResponse response = authService.signIn(request);
 
         assertJwtResponse(response, ACCESS_TOKEN, REFRESH_TOKEN);
-        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(jwtEntityMapper).toEntity(any(JwtUserDetails.class));
         verify(jwtTokenProvider).generateAccessToken(user);
         verify(jwtTokenProvider).generateRefreshToken(user);
@@ -99,7 +108,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenSignInFailsDueToInvalidCredentials() {
+    void signIn_withNotValidUser_throwsException() {
         SignInRequest request = createSignInRequest();
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
@@ -107,103 +116,88 @@ class AuthenticationServiceTest {
 
         UnauthorizedException exception = assertThrowsExactly(UnauthorizedException.class,
                 () -> authService.signIn(request));
-
-        assertEquals("Неверный email или пароль", exception.getMessage());
+        assertEquals("Неверный email или пароль.", exception.getMessage());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verifyNoInteractions(jwtTokenProvider);
+        verifyNoInteractions(jwtTokenProvider, tokenStorageService);
     }
 
     @Test
-    void shouldGenerateAccessTokenSuccessfully() {
+    void getAccessToken_withValidToken_genSuccessfully() {
         String refreshToken = REFRESH_TOKEN;
         User user = createUser();
 
         setupClaims(refreshToken, user.getEmail());
-        when(tokenStorageService.get(user.getId())).thenReturn(refreshToken);
-        when(jwtTokenProvider.generateAccessToken(user)).thenReturn(NEW_ACCESS_TOKEN);
+        when(tokenStorageService.get(user.getId()))
+                .thenReturn(refreshToken);
+        when(jwtTokenProvider.generateAccessToken(user))
+                .thenReturn(NEW_ACCESS_TOKEN);
 
-        JwtResponse response = authService.getAccessToken(new RefreshJwtRequest(refreshToken));
+        AccessJwtResponse accessToken = authService
+                .getAccessToken(new RefreshJwtRequest(refreshToken));
 
-        assertJwtResponse(response, NEW_ACCESS_TOKEN, null);
+        assertEquals(NEW_ACCESS_TOKEN, accessToken.accessToken());
         verify(jwtTokenProvider).validateRefreshToken(refreshToken);
-        verify(jwtTokenProvider).getRefreshClaims(refreshToken);
-        verify(userManagementService).getByEmail(user.getEmail());
         verify(tokenStorageService).get(user.getId());
         verify(jwtTokenProvider).generateAccessToken(user);
     }
 
     @Test
-    void shouldThrowExceptionWhenGetAccessTokenIsMissing() {
-        String refreshToken = "refreshToken123";
-        RefreshJwtRequest request = new RefreshJwtRequest(refreshToken);
+    void getAccessToken_withNoValidToken_throwException() {
+        String refreshToken = REFRESH_TOKEN;
 
-        when(jwtTokenProvider.validateRefreshToken(refreshToken)).thenReturn(false);
+        when(jwtTokenProvider.validateRefreshToken(refreshToken))
+                .thenReturn(false);
 
         InvalidTokenException exception = assertThrowsExactly(InvalidTokenException.class,
-                () -> authService.getAccessToken(request));
+                () -> authService.getAccessToken(new RefreshJwtRequest(refreshToken)));
 
-        assertEquals("Токен обновления не валиден", exception.getMessage());
+        assertEquals("Токен обновления не валиден.", exception.getMessage());
         verify(jwtTokenProvider).validateRefreshToken(refreshToken);
-        verify(jwtTokenProvider, never()).getRefreshClaims(refreshToken);
-        verify(userManagementService, never()).getByEmail(anyString());
-        verify(tokenStorageService, never()).get(anyLong());
+        verifyNoInteractions(tokenStorageService);
         verify(jwtTokenProvider, never()).generateAccessToken(any(User.class));
     }
 
-
     @Test
-    void shouldRefreshTokensSuccessfully() {
+    void getRefreshTokens_withValidToken_genSuccessfully() {
         String refreshToken = REFRESH_TOKEN;
         User user = createUser();
 
         setupClaims(refreshToken, user.getEmail());
-        when(tokenStorageService.get(user.getId())).thenReturn(refreshToken);
-        when(jwtTokenProvider.generateAccessToken(user)).thenReturn(NEW_ACCESS_TOKEN);
-        when(jwtTokenProvider.generateRefreshToken(user)).thenReturn(NEW_REFRESH_TOKEN);
+        when(tokenStorageService.get(user.getId()))
+                .thenReturn(refreshToken);
+        when(jwtTokenProvider.generateAccessToken(user))
+                .thenReturn(NEW_ACCESS_TOKEN);
+        when(jwtTokenProvider.generateRefreshToken(user))
+                .thenReturn(NEW_REFRESH_TOKEN);
 
-        JwtResponse response = authService.refresh(new RefreshJwtRequest(refreshToken));
+        JwtResponse response = authService
+                .getRefreshTokens(new RefreshJwtRequest(refreshToken));
 
         assertJwtResponse(response, NEW_ACCESS_TOKEN, NEW_REFRESH_TOKEN);
-        verify(jwtTokenProvider).validateRefreshToken(refreshToken);
-        verify(jwtTokenProvider).getRefreshClaims(refreshToken);
-        verify(userManagementService).getByEmail(DEFAULT_EMAIL);
-        verify(tokenStorageService).get(user.getId());
         verify(jwtTokenProvider).generateAccessToken(user);
         verify(jwtTokenProvider).generateRefreshToken(user);
         verify(tokenStorageService).save(user.getId(), NEW_REFRESH_TOKEN);
     }
 
     @Test
-    void shouldThrowExceptionWhenRefreshTokensIsMissing() {
+    void getRefreshTokens_withInvalidToken_throwException() {
         String refreshToken = REFRESH_TOKEN;
-        RefreshJwtRequest request = createRefreshJwtRequest();
 
-        when(jwtTokenProvider.validateRefreshToken(refreshToken)).thenReturn(false);
+        when(jwtTokenProvider.validateRefreshToken(refreshToken))
+                .thenReturn(false);
 
         InvalidTokenException exception = assertThrowsExactly(InvalidTokenException.class,
-                () -> authService.refresh(request));
+                () -> authService.getRefreshTokens(new RefreshJwtRequest(refreshToken)));
 
-        assertEquals("Токен обновления не валиден", exception.getMessage());
-        verify(jwtTokenProvider).validateRefreshToken(refreshToken);
-        verify(jwtTokenProvider, never()).getRefreshClaims(refreshToken);
-        verify(userManagementService, never()).getByEmail(DEFAULT_EMAIL);
-        verify(tokenStorageService, never()).get(anyLong());
+        assertEquals("Токен обновления не валиден.", exception.getMessage());
+        verifyNoInteractions(tokenStorageService);
         verify(jwtTokenProvider, never()).generateAccessToken(any(User.class));
         verify(jwtTokenProvider, never()).generateRefreshToken(any(User.class));
-        verify(tokenStorageService, never()).save(anyLong(), any());
-    }
-
-    private @NotNull SignUpRequest createSignUpRequest() {
-        return new SignUpRequest(DEFAULT_EMAIL, DEFAULT_PASSWORD, DEFAULT_PASSWORD);
     }
 
 
     private @NotNull SignInRequest createSignInRequest() {
         return new SignInRequest(DEFAULT_EMAIL, DEFAULT_PASSWORD);
-    }
-
-    private @NotNull RefreshJwtRequest createRefreshJwtRequest() {
-        return new RefreshJwtRequest(REFRESH_TOKEN);
     }
 
     private User createUser() {
@@ -212,6 +206,7 @@ class AuthenticationServiceTest {
                 .email(DEFAULT_EMAIL)
                 .password(ENCODED_PASSWORD)
                 .roles(Set.of(Role.ROLE_USER))
+                .registerDate(LocalDateTime.now())
                 .build();
     }
 

@@ -8,8 +8,8 @@ public interface AuthenticationService {
 
     JwtResponse signIn(SignInRequest request);
 
-    JwtResponse getAccessToken(RefreshJwtRequest request);
+    AccessJwtResponse getAccessToken(RefreshJwtRequest request);
 
-    JwtResponse refresh(RefreshJwtRequest request);
+    JwtResponse getRefreshTokens(RefreshJwtRequest request);
 
 }

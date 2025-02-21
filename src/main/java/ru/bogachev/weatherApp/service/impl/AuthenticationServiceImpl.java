@@ -5,9 +5,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.bogachev.weatherApp.dto.auth.*;
@@ -45,9 +45,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .registerDate(LocalDateTime.now())
                 .build();
 
-        userManagementService.create(user);
-        return new SignUpResponse("SUCCESS",
-                "Пользователь успешно зарегистрирован");
+        User savedUser = userManagementService.create(user);
+
+        return new SignUpResponse(
+                savedUser.getId(),
+                savedUser.getEmail(),
+                savedUser.getRoles(),
+                savedUser.getRegisterDate()
+        );
     }
 
     @Override
@@ -69,13 +74,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             tokenStorageManagementService.save(user.getId(), refreshToken);
             return new JwtResponse(accessToken, refreshToken);
-        } catch (BadCredentialsException e) {
-            throw new UnauthorizedException("Неверный email или пароль");
+        } catch (AuthenticationException e) {
+            throw new UnauthorizedException("Неверный email или пароль.");
         }
     }
 
     @Override
-    public JwtResponse getAccessToken(
+    public AccessJwtResponse getAccessToken(
             @NonNull final RefreshJwtRequest request) {
         String refreshToken = request.refreshToken();
 
@@ -88,14 +93,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 && currentToken.equals(refreshToken)) {
                 final String newAccessToken = jwtTokenProvider
                         .generateAccessToken(user);
-                return new JwtResponse(newAccessToken, null);
+                return new AccessJwtResponse(newAccessToken);
             }
         }
-        throw new InvalidTokenException("Токен обновления не валиден");
+        throw new InvalidTokenException("Токен обновления не валиден.");
     }
 
     @Override
-    public JwtResponse refresh(@NonNull final RefreshJwtRequest request) {
+    public JwtResponse getRefreshTokens(
+            @NonNull final RefreshJwtRequest request) {
         String refreshToken = request.refreshToken();
 
         if (jwtTokenProvider.validateRefreshToken(refreshToken)) {
@@ -115,7 +121,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 return new JwtResponse(newAccessToken, newRefreshToken);
             }
         }
-        throw new InvalidTokenException("Токен обновления не валиден");
+        throw new InvalidTokenException("Токен обновления не валиден.");
     }
 
     private User getUserFromRefreshToken(final String refreshToken) {

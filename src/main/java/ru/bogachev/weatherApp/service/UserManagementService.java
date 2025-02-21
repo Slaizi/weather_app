@@ -4,7 +4,7 @@ import ru.bogachev.weatherApp.model.user.User;
 
 public interface UserManagementService {
 
-    void create(User user);
+    User create(User user);
 
     User getByEmail(String email);
 

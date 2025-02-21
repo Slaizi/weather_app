@@ -3,7 +3,7 @@ package ru.bogachev.weatherApp.dto.auth;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-@Schema(description = "Запрос на обновление токенов")
+@Schema(description = "Запрос на обновление токена/токенов")
 public record RefreshJwtRequest(
 
         @Schema(description = "Токен обновления")

@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.bogachev.weatherApp.dto.exception.ErrorMessage;
 import ru.bogachev.weatherApp.dto.exception.ExceptionBody;
 import ru.bogachev.weatherApp.exception.*;
 
@@ -20,50 +21,66 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorMessage> handleUserAlreadyExists(
+            final UserAlreadyExistsException e
+    ) {
+        ErrorMessage response = new ErrorMessage(
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ExceptionBody> handleUserNotFound(
+    public ResponseEntity<ErrorMessage> handleUserNotFound(
             final UserNotFoundException e
     ) {
-        return returnDefaultResponseBadRequest(e);
+        ErrorMessage response = new ErrorMessage(
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(response);
     }
 
     @ExceptionHandler(GeoRequestException.class)
-    public ResponseEntity<ExceptionBody> handleGeoRequest(
+    public ResponseEntity<ErrorMessage> handleGeoRequest(
             final GeoRequestException e
     ) {
         return returnDefaultResponseBadRequest(e);
     }
 
     @ExceptionHandler(WeatherRequestException.class)
-    public ResponseEntity<ExceptionBody> handleWeatherRequest(
+    public ResponseEntity<ErrorMessage> handleWeatherRequest(
             final WeatherRequestException e
     ) {
         return returnDefaultResponseBadRequest(e);
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ExceptionBody> handleUnauthorized(
+    public ResponseEntity<ErrorMessage> handleUnauthorized(
             final @NotNull UnauthorizedException e
     ) {
-        ExceptionBody response = new ExceptionBody(
-                e.getMessage(), Map.of());
+        ErrorMessage response = new ErrorMessage(
+                e.getMessage()
+        );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(response);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ExceptionBody> handleIllegalArgument(
+    public ResponseEntity<ErrorMessage> handleIllegalArgument(
             final IllegalArgumentException e
     ) {
         return returnDefaultResponseBadRequest(e);
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ExceptionBody> handleInvalidToken(
+    public ResponseEntity<ErrorMessage> handleInvalidToken(
             final @NotNull InvalidTokenException e
     ) {
-        ExceptionBody response = new ExceptionBody(
-                e.getMessage(), Map.of()
+        ErrorMessage response = new ErrorMessage(
+                e.getMessage()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(response);
@@ -104,12 +121,11 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    private @NotNull ResponseEntity<ExceptionBody>
+    private @NotNull ResponseEntity<ErrorMessage>
     returnDefaultResponseBadRequest(
             final @NotNull RuntimeException exception) {
-        ExceptionBody response = new ExceptionBody(
-                exception.getMessage(),
-                Map.of()
+        ErrorMessage response = new ErrorMessage(
+                exception.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(response);
