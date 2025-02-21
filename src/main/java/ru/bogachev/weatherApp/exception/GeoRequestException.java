@@ -6,8 +6,4 @@ public class GeoRequestException extends RuntimeException {
         super(message);
     }
 
-    public GeoRequestException(final String message,
-                               final Throwable cause) {
-        super(message, cause);
-    }
 }

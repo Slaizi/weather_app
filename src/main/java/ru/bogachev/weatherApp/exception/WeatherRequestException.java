@@ -6,8 +6,4 @@ public class WeatherRequestException extends RuntimeException {
         super(message);
     }
 
-    public WeatherRequestException(final String message,
-                                   final Throwable cause) {
-        super(message, cause);
-    }
 }

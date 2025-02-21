@@ -68,7 +68,7 @@ public class WeatherDataServiceImpl implements WeatherDataService {
             return processGeoResponse(response);
         } catch (IOException e) {
             throw new GeoRequestException(
-                    "Error while executing geocoding request", e
+                    "Error while executing geocoding request"
             );
         }
     }
@@ -126,7 +126,7 @@ public class WeatherDataServiceImpl implements WeatherDataService {
             return processWeatherResponse(response);
         } catch (IOException e) {
             throw new WeatherRequestException(
-                    "Error while executing weather request", e
+                    "Error while executing weather request"
             );
         }
     }
