@@ -2,7 +2,7 @@ package ru.bogachev.weatherApp.service;
 
 import ru.bogachev.weatherApp.model.user.User;
 
-public interface UserManagementService {
+public interface UserService {
 
     User create(User user);
 

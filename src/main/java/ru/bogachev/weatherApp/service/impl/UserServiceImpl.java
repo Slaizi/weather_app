@@ -8,13 +8,13 @@ import ru.bogachev.weatherApp.exception.UserAlreadyExistsException;
 import ru.bogachev.weatherApp.exception.UserNotFoundException;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.repository.UserRepository;
-import ru.bogachev.weatherApp.service.UserManagementService;
+import ru.bogachev.weatherApp.service.UserService;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserManagementServiceImpl implements UserManagementService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 

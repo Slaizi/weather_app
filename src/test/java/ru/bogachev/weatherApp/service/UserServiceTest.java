@@ -7,32 +7,29 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.bogachev.weatherApp.exception.UserAlreadyExistsException;
 import ru.bogachev.weatherApp.exception.UserNotFoundException;
-import ru.bogachev.weatherApp.model.user.Role;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.repository.UserRepository;
-import ru.bogachev.weatherApp.service.impl.UserManagementServiceImpl;
+import ru.bogachev.weatherApp.service.impl.UserServiceImpl;
+import ru.bogachev.weatherApp.util.TestDataFactory;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static ru.bogachev.weatherApp.util.TestDataFactory.DEFAULT_EMAIL;
 
 @ExtendWith(MockitoExtension.class)
-class UserManagementServiceTest {
-
-    private static final String DEFAULT_EMAIL = "user@example.com";
-    private static final String ENCODED_PASSWORD = "encodedPassword";
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
 
     @InjectMocks
-    private UserManagementServiceImpl userService;
+    private UserServiceImpl userService;
 
     @Test
     void create_withNoExistsUser_saveSuccessfully() {
-        User user = createUser();
+        User user = TestDataFactory.createUser();
 
         when(userRepository.existsByEmail(user.getEmail()))
                 .thenReturn(false);
@@ -45,7 +42,7 @@ class UserManagementServiceTest {
 
     @Test
     void create_withExistUser_throwException() {
-        User user = createUser();
+        User user = TestDataFactory.createUser();
         String expectedMessage = String.format(
                 "Пользователь с адресом электронной почты "
                 + "'%s' уже существует. Проверьте введённые данные.",
@@ -65,7 +62,7 @@ class UserManagementServiceTest {
     @Test
     void getByEmail_withExistUser_getSuccessfully() {
         String email = DEFAULT_EMAIL;
-        User user = createUser();
+        User user = TestDataFactory.createUser();
 
         when(userRepository.findByEmail(email))
                 .thenReturn(Optional.of(user));
@@ -92,14 +89,6 @@ class UserManagementServiceTest {
                 () -> userService.getByEmail(email));
 
         assertEquals(expectedMessage, exception.getMessage());
-    }
-
-    private User createUser() {
-        return User.builder()
-                .id(1L)
-                .email(DEFAULT_EMAIL)
-                .password(ENCODED_PASSWORD)
-                .roles(Set.of(Role.ROLE_USER))
-                .build();
+        verify(userRepository).findByEmail(email);
     }
 }

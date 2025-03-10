@@ -1,4 +1,4 @@
-package ru.bogachev.weatherApp.controller;
+package ru.bogachev.weatherApp.controller.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,12 +9,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import ru.bogachev.weatherApp.dto.auth.*;
+import ru.bogachev.weatherApp.dto.auth.JwtResponse;
+import ru.bogachev.weatherApp.dto.auth.SignInRequest;
+import ru.bogachev.weatherApp.dto.auth.SignUpRequest;
+import ru.bogachev.weatherApp.dto.auth.SignUpResponse;
 import ru.bogachev.weatherApp.dto.exception.ErrorMessage;
 import ru.bogachev.weatherApp.dto.exception.ExceptionBody;
 
 @Tag(name = "Аутентификация", description = "Auth API")
-public interface AuthenticationApi {
+public interface AuthenticationApiDocs {
 
     @Operation(summary = "Регистрация пользователя.")
     @ApiResponse(
@@ -71,56 +74,5 @@ public interface AuthenticationApi {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<JwtResponse> signIn(@RequestBody SignInRequest request);
-
-    @Operation(summary = "Обновление токена доступа.")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Токен доступа успешно обновлен.",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = AccessJwtResponse.class))
-    )
-    @ApiResponse(
-            responseCode = "400",
-            description = "Ошибка/ошибки валидации запроса.",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ExceptionBody.class)
-            )
-    )
-    @ApiResponse(
-            responseCode = "401",
-            description = "Токен обновления невалиден.",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ErrorMessage.class))
-    )
-    @PostMapping(value = "/token",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<AccessJwtResponse> refreshAccessToken(
-            @RequestBody RefreshJwtRequest request);
-
-    @Operation(summary = "Обновление токенов доступа")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Токены успешно обновлены.",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = JwtResponse.class))
-    )
-    @ApiResponse(
-            responseCode = "400",
-            description = "Ошибка/ошибки валидации запроса.",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ExceptionBody.class))
-    )
-    @ApiResponse(
-            responseCode = "401",
-            description = "Токен обновления невалиден.",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ErrorMessage.class))
-    )
-    @PostMapping(value = "/refresh",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<JwtResponse> refreshTokens(
-            @RequestBody RefreshJwtRequest request);
 
 }
