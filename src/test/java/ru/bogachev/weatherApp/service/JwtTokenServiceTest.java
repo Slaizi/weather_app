@@ -1,6 +1,5 @@
 package ru.bogachev.weatherApp.service;
 
-import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,16 +8,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.bogachev.weatherApp.dto.auth.AccessJwtResponse;
 import ru.bogachev.weatherApp.dto.auth.JwtResponse;
 import ru.bogachev.weatherApp.dto.auth.RefreshJwtRequest;
-import ru.bogachev.weatherApp.exception.InvalidTokenException;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.security.JwtTokenProvider;
 import ru.bogachev.weatherApp.service.impl.JwtTokenServiceImpl;
 import ru.bogachev.weatherApp.service.impl.TokenStorageServiceImpl;
-import ru.bogachev.weatherApp.service.impl.UserServiceImpl;
+import ru.bogachev.weatherApp.support.helper.JwtHelper;
 import ru.bogachev.weatherApp.util.TestDataFactory;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static ru.bogachev.weatherApp.util.TestDataFactory.REFRESH_TOKEN;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,56 +30,39 @@ class JwtTokenServiceTest {
     @Mock
     private JwtTokenProvider jwtTokenProvider;
     @Mock
-    private UserServiceImpl userService;
-    @Mock
     private TokenStorageServiceImpl tokenStorageService;
+    @Mock
+    private JwtHelper jwtHelper;
     @InjectMocks
     private JwtTokenServiceImpl jwtTokenService;
 
     @Test
-    void getAccessToken_withValidToken_genSuccessfully() {
+    void generateAccessToken_withValidToken_genSuccessfully() {
         String refreshToken = REFRESH_TOKEN;
         User user = TestDataFactory.createUser();
 
-        setupClaims(refreshToken, user.getEmail());
-        when(tokenStorageService.get(user.getId()))
-                .thenReturn(refreshToken);
+        when(jwtHelper.validateAndGetUserFromToken(refreshToken))
+                .thenReturn(user);
         when(jwtTokenProvider.generateAccessToken(user))
                 .thenReturn(NEW_ACCESS_TOKEN);
 
-        AccessJwtResponse accessToken = jwtTokenService
+        AccessJwtResponse response = jwtTokenService
                 .generateAccessToken(new RefreshJwtRequest(refreshToken));
 
-        assertEquals(NEW_ACCESS_TOKEN, accessToken.accessToken());
-        verify(jwtTokenProvider).validateRefreshToken(refreshToken);
-        verify(tokenStorageService).get(user.getId());
+        assertNotNull(response);
+        assertEquals(NEW_ACCESS_TOKEN, response.accessToken());
+
+        verify(jwtHelper).validateAndGetUserFromToken(refreshToken);
         verify(jwtTokenProvider).generateAccessToken(user);
     }
 
     @Test
-    void getAccessToken_withNoValidToken_throwException() {
-        String refreshToken = REFRESH_TOKEN;
-
-        when(jwtTokenProvider.validateRefreshToken(refreshToken))
-                .thenReturn(false);
-
-        InvalidTokenException exception = assertThrowsExactly(InvalidTokenException.class,
-                () -> jwtTokenService.generateAccessToken(new RefreshJwtRequest(refreshToken)));
-
-        assertEquals("Токен обновления не валиден.", exception.getMessage());
-        verify(jwtTokenProvider).validateRefreshToken(refreshToken);
-        verifyNoInteractions(tokenStorageService);
-        verify(jwtTokenProvider, never()).generateAccessToken(any(User.class));
-    }
-
-    @Test
-    void getRefreshTokens_withValidToken_genSuccessfully() {
+    void generateAccessAndRefreshTokens_withValidToken_genSuccessfully() {
         String refreshToken = REFRESH_TOKEN;
         User user = TestDataFactory.createUser();
 
-        setupClaims(refreshToken, user.getEmail());
-        when(tokenStorageService.get(user.getId()))
-                .thenReturn(refreshToken);
+        when(jwtHelper.validateAndGetUserFromToken(refreshToken))
+                .thenReturn(user);
         when(jwtTokenProvider.generateAccessToken(user))
                 .thenReturn(NEW_ACCESS_TOKEN);
         when(jwtTokenProvider.generateRefreshToken(user))
@@ -92,35 +75,9 @@ class JwtTokenServiceTest {
         assertEquals(NEW_ACCESS_TOKEN, response.accessToken());
         assertEquals(NEW_REFRESH_TOKEN, response.refreshToken());
 
+        verify(jwtHelper).validateAndGetUserFromToken(refreshToken);
         verify(jwtTokenProvider).generateAccessToken(user);
         verify(jwtTokenProvider).generateRefreshToken(user);
         verify(tokenStorageService).save(user.getId(), NEW_REFRESH_TOKEN);
-    }
-
-    @Test
-    void getRefreshTokens_withInvalidToken_throwException() {
-        String refreshToken = REFRESH_TOKEN;
-
-        when(jwtTokenProvider.validateRefreshToken(refreshToken))
-                .thenReturn(false);
-
-        InvalidTokenException exception = assertThrowsExactly(InvalidTokenException.class,
-                () -> jwtTokenService
-                        .generateAccessAndRefreshTokens(
-                                new RefreshJwtRequest(refreshToken))
-        );
-
-        assertEquals("Токен обновления не валиден.", exception.getMessage());
-        verifyNoInteractions(tokenStorageService);
-        verify(jwtTokenProvider, never()).generateAccessToken(any(User.class));
-        verify(jwtTokenProvider, never()).generateRefreshToken(any(User.class));
-    }
-
-    private void setupClaims(String refreshToken, String email) {
-        Claims mockClaims = mock(Claims.class);
-        when(jwtTokenProvider.validateRefreshToken(refreshToken)).thenReturn(true);
-        when(jwtTokenProvider.getRefreshClaims(refreshToken)).thenReturn(mockClaims);
-        when(mockClaims.getSubject()).thenReturn(email);
-        when(userService.getByEmail(email)).thenReturn(TestDataFactory.createUser());
     }
 }

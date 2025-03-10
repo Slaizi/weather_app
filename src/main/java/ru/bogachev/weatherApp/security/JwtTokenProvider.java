@@ -28,6 +28,9 @@ import java.util.Set;
 @Component
 public class JwtTokenProvider {
 
+    private static final String INVALID_TOKEN_MSG =
+            "Произошла ошибка при проверке токена.";
+
     private final SecretKey jwtAccessSecret;
     private final SecretKey jwtRefreshSecret;
 
@@ -88,12 +91,10 @@ public class JwtTokenProvider {
             return validateToken(token, jwtAccessSecret);
         } catch (JwtException | IllegalArgumentException e) {
             throw new InvalidTokenException(
-                    "Токен доступа недействителен или поврежден"
+                    "Токен доступа недействителен или поврежден."
             );
         } catch (Exception e) {
-            throw new InvalidTokenException(
-                    "Произошла ошибка при проверке токена"
-            );
+            throw new InvalidTokenException(INVALID_TOKEN_MSG);
         }
     }
 
@@ -102,12 +103,10 @@ public class JwtTokenProvider {
             return validateToken(token, jwtRefreshSecret);
         } catch (JwtException | IllegalArgumentException e) {
             throw new InvalidTokenException(
-                    "Токен обновления недействителен или поврежден"
+                    "Токен обновления недействителен или поврежден."
             );
         } catch (Exception e) {
-            throw new InvalidTokenException(
-                    "Произошла ошибка при проверке токена"
-            );
+            throw new InvalidTokenException(INVALID_TOKEN_MSG);
         }
     }
 

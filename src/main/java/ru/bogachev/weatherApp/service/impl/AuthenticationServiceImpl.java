@@ -1,6 +1,5 @@
 package ru.bogachev.weatherApp.service.impl;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -39,41 +38,59 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserJwtEntityMapper userJwtEntityMapper;
 
     @Override
-    public SignUpResponse singUp(@NonNull final SignUpRequest request) {
-        User user = User.builder()
+    public SignUpResponse singUp(final SignUpRequest request) {
+        User user = buildUserFromRequest(request);
+        return createUserAndReturnResponse(user);
+    }
+
+    private User buildUserFromRequest(final @NotNull SignUpRequest request) {
+        return User.builder()
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .roles(Set.of(Role.ROLE_USER))
                 .registerDate(LocalDateTime.now())
                 .build();
+    }
 
-        User savedUser = userService.create(user);
+    private @NotNull SignUpResponse createUserAndReturnResponse(
+            final User user) {
+        User dbUser = userService.create(user);
+        return buildResponse(dbUser);
+    }
 
+    @Contract("_ -> new")
+    private @NotNull SignUpResponse buildResponse(
+            final @NotNull User dbUser) {
         return new SignUpResponse(
-                savedUser.getId(),
-                savedUser.getEmail(),
-                savedUser.getRoles(),
-                savedUser.getRegisterDate()
+                dbUser.getId(),
+                dbUser.getEmail(),
+                dbUser.getRoles(),
+                dbUser.getRegisterDate()
         );
     }
 
     @Override
-    public JwtResponse signIn(@NonNull final SignInRequest request) {
+    public JwtResponse signIn(final SignInRequest request) {
+        Authentication authentication = getAuthentication(request);
+        User user = getUserForAuthentication(authentication);
+        return generateTokens(user);
+    }
+
+    private Authentication getAuthentication(
+            final @NotNull SignInRequest request) {
         try {
-            Authentication authenticate = authManager.authenticate(
+            return authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.email(), request.password()
                     )
             );
-            User user = getUserForAuth(authenticate);
-
-            return generateTokens(user);
         } catch (AuthenticationException e) {
             throw new UnauthorizedException("Неверный email или пароль.");
         }
     }
 
-    private User getUserForAuth(@NotNull final Authentication auth) {
+    private User getUserForAuthentication(
+            @NotNull final Authentication auth) {
         JwtUserDetails userDetails =
                 (JwtUserDetails) auth.getPrincipal();
         return userJwtEntityMapper.toEntity(userDetails);
