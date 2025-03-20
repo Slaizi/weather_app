@@ -10,6 +10,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,7 @@ import org.springframework.web.filter.GenericFilterBean;
 import ru.bogachev.weatherApp.exception.InvalidTokenException;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @AllArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
@@ -39,7 +41,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 && jwtTokenProvider.validateAccessToken(token)) {
                 Authentication authentication = jwtTokenProvider
                         .getAuthentication(token);
-                if (authentication != null) {
+                if (Objects.nonNull(authentication)) {
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(authentication);
@@ -48,7 +50,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             fc.doFilter(req, resp);
         } catch (UsernameNotFoundException | InvalidTokenException e) {
             HttpServletResponse response = (HttpServletResponse) resp;
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.getWriter()

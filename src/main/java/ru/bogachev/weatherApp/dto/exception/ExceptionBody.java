@@ -7,7 +7,7 @@ import java.util.Map;
 @Schema(description = "Объект для представления ошибки в API")
 public record ExceptionBody(
 
-        @Schema(description = "Сообщение об ошибке")
+        @Schema(example = "Сообщение об ошибки")
         String message,
 
         @Schema(description = "Детализация ошибок по полям ввода",
