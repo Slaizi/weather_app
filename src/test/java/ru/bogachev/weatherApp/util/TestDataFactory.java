@@ -7,13 +7,14 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import ru.bogachev.weatherApp.dto.auth.SignInRequest;
-import ru.bogachev.weatherApp.dto.auth.SignUpRequest;
+import ru.bogachev.weatherApp.model.location.Location;
+import ru.bogachev.weatherApp.model.location.LocationNames;
 import ru.bogachev.weatherApp.model.user.Role;
 import ru.bogachev.weatherApp.model.user.User;
 import ru.bogachev.weatherApp.security.JwtUserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,21 +37,22 @@ public final class TestDataFactory {
                 .build();
     }
 
-    @Contract(" -> new")
-    public static @NotNull SignUpRequest createSignUpRequest() {
-        return new SignUpRequest(
-                DEFAULT_EMAIL,
-                DEFAULT_PASSWORD,
-                DEFAULT_PASSWORD
+    public static @NotNull Location createLocation() {
+        Location location = new Location();
+        location.setCountry("RU");
+        location.setCityName("Moscow");
+        location.setLatitude(55.7504461);
+        location.setLongitude(37.6174943);
+        location.setLocalNames(
+                new LocationNames(
+                        Map.of(
+                                "en", "Moscow",
+                                "ru", "Москва",
+                                "nn", "Moskva"
+                        )
+                )
         );
-    }
-
-    @Contract(" -> new")
-    public static @NotNull SignInRequest createSignInRequest() {
-        return new SignInRequest(
-                DEFAULT_EMAIL,
-                DEFAULT_PASSWORD
-        );
+        return location;
     }
 
     public static @NotNull Authentication createAuthentication() {

@@ -20,7 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LocationWeatherDto {
+public class LocationWeatherDto implements LocationDto {
 
     @JsonProperty(value = "weather")
     private List<Weather> weathers;

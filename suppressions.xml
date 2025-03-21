@@ -18,4 +18,5 @@
     <suppress checks="LineLength" files=".*SignUpRequest.java"/>
     <suppress checks="LineLength" files=".*SignUpResponse.java"/>
     <suppress checks="LineLength" files=".*ExceptionBody.java"/>
+    <suppress checks="LineLength" files=".*LocationGeoDto"/>
 </suppressions>

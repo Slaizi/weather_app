@@ -21,20 +21,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorMessage> handleUserAlreadyExists(
-            final UserAlreadyExistsException e
-    ) {
-        ErrorMessage response = new ErrorMessage(
-                e.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(response);
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorMessage> handleUserNotFound(
-            final UserNotFoundException e
+    @ExceptionHandler({
+            UserNotFoundException.class,
+            GeoNotFoundException.class
+    })
+    public ResponseEntity<ErrorMessage> handleNotFoundExceptions(
+            final @NotNull RuntimeException e
     ) {
         ErrorMessage response = new ErrorMessage(
                 e.getMessage()
@@ -43,41 +35,37 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    @ExceptionHandler(GeoRequestException.class)
-    public ResponseEntity<ErrorMessage> handleGeoRequest(
-            final GeoRequestException e
-    ) {
-        return returnDefaultResponseBadRequest(e);
-    }
-
-    @ExceptionHandler(WeatherRequestException.class)
-    public ResponseEntity<ErrorMessage> handleWeatherRequest(
-            final WeatherRequestException e
-    ) {
-        return returnDefaultResponseBadRequest(e);
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorMessage> handleUnauthorized(
-            final @NotNull UnauthorizedException e
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorMessage> handleUserAlreadyExists(
+            final @NotNull UserAlreadyExistsException e
     ) {
         ErrorMessage response = new ErrorMessage(
                 e.getMessage()
         );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(response);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorMessage> handleIllegalArgument(
-            final IllegalArgumentException e
+    @ExceptionHandler({
+            GeoRequestException.class,
+            WeatherRequestException.class
+    })
+    public ResponseEntity<ErrorMessage> handleBadRequestExceptions(
+            final @NotNull RuntimeException e
     ) {
-        return returnDefaultResponseBadRequest(e);
+        ErrorMessage response = new ErrorMessage(
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ErrorMessage> handleInvalidToken(
-            final @NotNull InvalidTokenException e
+    @ExceptionHandler({
+            UnauthorizedException.class,
+            InvalidTokenException.class
+    })
+    public ResponseEntity<ErrorMessage> handleUnauthorizedExceptions(
+            final @NotNull RuntimeException e
     ) {
         ErrorMessage response = new ErrorMessage(
                 e.getMessage()
@@ -117,16 +105,6 @@ public class GlobalExceptionHandler {
                 ));
         ExceptionBody response = new ExceptionBody(
                 "Некорректные данные", errors);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(response);
-    }
-
-    private @NotNull ResponseEntity<ErrorMessage>
-    returnDefaultResponseBadRequest(
-            final @NotNull RuntimeException exception) {
-        ErrorMessage response = new ErrorMessage(
-                exception.getMessage()
-        );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(response);
     }

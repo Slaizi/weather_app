@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,7 +22,8 @@ import ru.bogachev.weatherApp.security.JwtTokenProvider;
 import ru.bogachev.weatherApp.security.JwtUserDetails;
 import ru.bogachev.weatherApp.service.impl.AuthenticationServiceImpl;
 import ru.bogachev.weatherApp.service.impl.TokenStorageServiceImpl;
-import ru.bogachev.weatherApp.support.mapper.UserJwtEntityMapper;
+import ru.bogachev.weatherApp.support.mapper.UserJwtEntityMapperImpl;
+import ru.bogachev.weatherApp.util.TestDataDtoFactory;
 import ru.bogachev.weatherApp.util.TestDataFactory;
 
 import java.util.Set;
@@ -49,15 +51,15 @@ class AuthenticationServiceTest {
     @Mock
     private TokenStorageServiceImpl tokenStorageService;
 
-    @Mock
-    private UserJwtEntityMapper jwtEntityMapper;
+    @Spy
+    private UserJwtEntityMapperImpl mapper;
 
     @InjectMocks
     private AuthenticationServiceImpl authService;
 
     @Test
     void signUp_withValidUser_saveUser() {
-        SignUpRequest request = TestDataFactory.createSignUpRequest();
+        SignUpRequest request = TestDataDtoFactory.createSignUpRequest();
         User userInDataBase = TestDataFactory.createUser();
 
         when(passwordEncoder.encode(request.password()))
@@ -78,7 +80,7 @@ class AuthenticationServiceTest {
 
     @Test
     void signIn_withValidUser_authSuccessfully() {
-        SignInRequest request = TestDataFactory.createSignInRequest();
+        SignInRequest request = TestDataDtoFactory.createSignInRequest();
 
         User user = TestDataFactory.createUser();
         Authentication authentication = TestDataFactory
@@ -86,8 +88,6 @@ class AuthenticationServiceTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
-        when(jwtEntityMapper.toEntity(any(JwtUserDetails.class)))
-                .thenReturn(user);
         when(jwtTokenProvider.generateAccessToken(user)).thenReturn(ACCESS_TOKEN);
         when(jwtTokenProvider.generateRefreshToken(user)).thenReturn(REFRESH_TOKEN);
 
@@ -97,7 +97,7 @@ class AuthenticationServiceTest {
         assertEquals(ACCESS_TOKEN, response.accessToken());
         assertEquals(REFRESH_TOKEN, response.refreshToken());
 
-        verify(jwtEntityMapper).toEntity(any(JwtUserDetails.class));
+        verify(mapper).toEntity(any(JwtUserDetails.class));
         verify(jwtTokenProvider).generateAccessToken(user);
         verify(jwtTokenProvider).generateRefreshToken(user);
         verify(tokenStorageService).save(user.getId(), REFRESH_TOKEN);
@@ -105,7 +105,7 @@ class AuthenticationServiceTest {
 
     @Test
     void signIn_withNotValidUser_throwsException() {
-        SignInRequest request = TestDataFactory.createSignInRequest();
+        SignInRequest request = TestDataDtoFactory.createSignInRequest();
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(BadCredentialsException.class);

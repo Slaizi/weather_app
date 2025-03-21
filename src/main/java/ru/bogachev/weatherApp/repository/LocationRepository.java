@@ -14,7 +14,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     @Query(value = """
             SELECT *
             FROM locations
-            WHERE country ILIKE :iso_code
+            WHERE country ILIKE :country
               AND EXISTS (
                 SELECT 1
                 FROM jsonb_each_text(local_names -> 'local_names')
@@ -23,6 +23,19 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
             LIMIT 1
             """, nativeQuery = true)
     Optional<Location> findLocationByJsonbValue(
-            @Param("iso_code") String isoCode,
+            @Param("country") String countryIsoCode,
             @Param("value") String localName);
+
+    @Query(value = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM locations
+                WHERE country ILIKE :country
+                AND city_name = :cityName
+            )
+            """, nativeQuery = true)
+    boolean existsByCountryAndCity(
+            @Param("country") String countryIsoCode,
+            @Param("cityName") String cityName
+    );
 }
