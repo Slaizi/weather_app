@@ -67,7 +67,7 @@ class AuthenticationServiceTest {
         when(userService.create(any(User.class)))
                 .thenReturn(userInDataBase);
 
-        SignUpResponse response = authService.singUp(request);
+        SignUpResponse response = authService.signUp(request);
 
         assertNotNull(response);
         assertEquals(request.email(), response.email());

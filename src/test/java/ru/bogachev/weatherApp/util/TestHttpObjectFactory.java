@@ -23,18 +23,18 @@ public final class TestHttpObjectFactory {
                 .create(jsonResponse, MediaType.get("application/json"));
     }
 
-    public static @NotNull Response createResponse(Request request,
+    public static @NotNull Response createResponse(String url,
+                                                   String jsonResponse,
                                                    @NotNull HttpStatusCode code,
-                                                   String message,
-                                                   ResponseBody responseBody) {
+                                                   String message) {
+        Request request = createRequestWithGetMethod(url);
+        ResponseBody body = createResponseBody(jsonResponse);
         return new Response.Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_1_1)
                 .code(code.value())
                 .message(message)
-                .body(responseBody)
+                .body(body)
                 .build();
     }
-
-
 }

@@ -4,7 +4,7 @@ import ru.bogachev.weatherApp.dto.auth.*;
 
 public interface AuthenticationService {
 
-    SignUpResponse singUp(SignUpRequest request);
+    SignUpResponse signUp(SignUpRequest request);
 
     JwtResponse signIn(SignInRequest request);
 

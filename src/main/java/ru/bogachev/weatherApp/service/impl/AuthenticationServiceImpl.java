@@ -38,7 +38,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserJwtEntityMapper userJwtEntityMapper;
 
     @Override
-    public SignUpResponse singUp(final SignUpRequest request) {
+    public SignUpResponse signUp(final SignUpRequest request) {
         User user = buildUserFromRequest(request);
         return createUserAndReturnResponse(user);
     }

@@ -20,7 +20,7 @@ public class AuthenticationController implements AuthenticationApiDocs {
     @Override
     public ResponseEntity<SignUpResponse> signUp(
             final SignUpRequest request) {
-        SignUpResponse response = authenticationService.singUp(request);
+        SignUpResponse response = authenticationService.signUp(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

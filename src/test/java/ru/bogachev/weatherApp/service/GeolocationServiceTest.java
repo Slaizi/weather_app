@@ -9,8 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.bogachev.weatherApp.dto.location.LocationGeoDto;
 import ru.bogachev.weatherApp.model.location.Location;
 import ru.bogachev.weatherApp.service.impl.GeolocationServiceImpl;
-import ru.bogachev.weatherApp.support.client.OpenWeatherApiClient;
-import ru.bogachev.weatherApp.support.client.strategies.Strategies;
+import ru.bogachev.weatherApp.integration.openweather.OpenWeatherApi;
+import ru.bogachev.weatherApp.integration.openweather.Strategies;
 import ru.bogachev.weatherApp.support.mapper.LocationGeoEntityMapperImpl;
 import ru.bogachev.weatherApp.util.TestDataDtoFactory;
 import ru.bogachev.weatherApp.util.TestDataFactory;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 class GeolocationServiceTest {
 
     @Mock
-    private OpenWeatherApiClient openWeatherApiClient;
+    private OpenWeatherApi openWeatherApi;
 
     @Mock
     private LocationService locationService;
@@ -57,7 +57,7 @@ class GeolocationServiceTest {
 
         verify(locationService).getLocation(countryIsoCode, nameOfLocation);
         verify(locationService, never()).create(any(Location.class));
-        verifyNoInteractions(openWeatherApiClient);
+        verifyNoInteractions(openWeatherApi);
     }
 
     @Test
@@ -68,8 +68,8 @@ class GeolocationServiceTest {
 
         when(locationService.getLocation(countryIsoCode, nameOfLocation))
                 .thenReturn(Optional.empty());
-        when(openWeatherApiClient.executeRequestFromStrategy(
-                countryIsoCode, nameOfLocation, Strategies.GEOLOCATION))
+        when(openWeatherApi.performRequestBasedOnStrategy(
+                countryIsoCode, nameOfLocation, Strategies.GET_GEOLOCATION))
                 .thenReturn(dto);
 
         LocationGeoDto response = geolocationService
@@ -81,8 +81,8 @@ class GeolocationServiceTest {
         assertEquals(55.7504461, response.getLatitude());
         assertEquals(37.6174943, response.getLongitude());
 
-        verify(openWeatherApiClient).executeRequestFromStrategy(
-                countryIsoCode, nameOfLocation, Strategies.GEOLOCATION);
+        verify(openWeatherApi).performRequestBasedOnStrategy(
+                countryIsoCode, nameOfLocation, Strategies.GET_GEOLOCATION);
         verify(mapper).toEntity(dto);
         verify(locationService).create(any(Location.class));
     }

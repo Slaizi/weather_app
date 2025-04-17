@@ -6,8 +6,8 @@ import ru.bogachev.weatherApp.dto.location.LocationGeoDto;
 import ru.bogachev.weatherApp.model.location.Location;
 import ru.bogachev.weatherApp.service.GeolocationService;
 import ru.bogachev.weatherApp.service.LocationService;
-import ru.bogachev.weatherApp.support.client.OpenWeatherApiClient;
-import ru.bogachev.weatherApp.support.client.strategies.Strategies;
+import ru.bogachev.weatherApp.integration.openweather.OpenWeatherApi;
+import ru.bogachev.weatherApp.integration.openweather.Strategies;
 import ru.bogachev.weatherApp.support.mapper.LocationGeoEntityMapper;
 
 import java.util.Optional;
@@ -16,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GeolocationServiceImpl implements GeolocationService {
 
-    private final OpenWeatherApiClient openWeatherApiClient;
+    private final OpenWeatherApi openWeatherApi;
     private final LocationService locationService;
     private final LocationGeoEntityMapper mapper;
 
@@ -35,9 +35,10 @@ public class GeolocationServiceImpl implements GeolocationService {
 
     private LocationGeoDto fetchAndStoreGeolocation(
             final String countryIsoCode, final String nameOfLocation) {
-        LocationGeoDto locationGeoDto = (LocationGeoDto) openWeatherApiClient
-                .executeRequestFromStrategy(
-                        countryIsoCode, nameOfLocation, Strategies.GEOLOCATION
+        LocationGeoDto locationGeoDto = (LocationGeoDto) openWeatherApi
+                .performRequestBasedOnStrategy(
+                        countryIsoCode, nameOfLocation,
+                        Strategies.GET_GEOLOCATION
                 );
         return convertAndPersistLocation(locationGeoDto);
     }

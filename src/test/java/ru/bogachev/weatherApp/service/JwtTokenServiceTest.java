@@ -29,10 +29,13 @@ class JwtTokenServiceTest {
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
+
     @Mock
     private TokenStorageServiceImpl tokenStorageService;
+
     @Mock
     private JwtHelper jwtHelper;
+
     @InjectMocks
     private JwtTokenServiceImpl jwtTokenService;
 
